@@ -13,7 +13,7 @@ async function bootstrap() {
             enableImplicitConversion: true, // Convierte los tipos de datos
         }
     }));
-    await app.listen(process.env.PORT || 3000);
+    await app.listen(process.env.PORT );
 }
 
 bootstrap();
