@@ -6,14 +6,23 @@ import { CreatePokemonDto } from './dto/create-pokemon.dto';
 import { UpdatePokemonDto } from './dto/update-pokemon.dto';
 import {InjectModel} from "@nestjs/mongoose";
 import {retry} from "rxjs";
+import {PaginationDto} from "../common/dto/pagination.dto";
+import {ConfigService} from "@nestjs/config";
 
 @Injectable()
 export class PokemonService {
 
+  private defaulLimit: number;
+
   constructor(
       @InjectModel( Pokemon.name )
-      private readonly pokemonModel: Model<Pokemon>
-  ) {}
+      private readonly pokemonModel: Model<Pokemon>,
+
+      private readonly configService: ConfigService
+  ) {
+    this.defaulLimit = this.configService.getOrThrow<number>('DEFAULT_LIMIT');
+    console.log( configService.getOrThrow<number>('SEXO') ); //busca en las variables de entorno si no lo encuentra arroja un error
+  }
 
   async create(createPokemonDto: CreatePokemonDto) {
     createPokemonDto.name = createPokemonDto.name.toLowerCase();
@@ -26,8 +35,16 @@ export class PokemonService {
     }
   }
 
-  findAll() {
-    return `This action returns all pokemon`;
+  findAll( paginationDto: PaginationDto ) {
+
+    const { limit = this.defaulLimit, offset = 0   } = paginationDto;
+
+    // Devuelve un arreglo de porkemons paginado, con un limite de 10 y un offset de 0 por defecto, los ordena por numerp de pokemon
+    return this.pokemonModel.find()
+        .limit( limit )
+        .skip( offset ).
+        sort( { no: 1 } )
+        .select('-__v');
   }
 
   async findOne(termino: string) {
